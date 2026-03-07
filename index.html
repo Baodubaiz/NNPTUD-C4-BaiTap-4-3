@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Role & User</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            margin: 40px;
+        }
+
+        h2 {
+            margin-top: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #333;
+            color: white;
+        }
+
+        button {
+            padding: 6px 10px;
+            margin: 2px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .add {
+            background: #2ecc71;
+            color: white
+        }
+
+        .edit {
+            background: #f39c12;
+            color: white
+        }
+
+        .delete {
+            background: #e74c3c;
+            color: white
+        }
+
+        .view {
+            background: #3498db;
+            color: white
+        }
+
+        input,
+        select {
+            padding: 6px;
+            margin: 5px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>CRUD Role & User</h1>
+
+    <div class="container">
+
+        <!-- ROLE -->
+        <div>
+
+            <h2>Roles</h2>
+
+            <input id="roleName" placeholder="Role name">
+            <input id="roleDesc" placeholder="Description">
+
+            <button class="add" onclick="createRole()">Add Role</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="roleTable"></tbody>
+
+            </table>
+
+        </div>
+
+        <!-- USER -->
+        <div>
+
+            <h2>Users</h2>
+
+            <input id="username" placeholder="Username">
+            <input id="fullname" placeholder="Full Name">
+
+            <select id="userRole"></select>
+
+            <button class="add" onclick="createUser()">Add User</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="userTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <h2>Users in Role</h2>
+
+    <select id="roleFilter"></select>
+    <button class="view" onclick="getUsersByRole()">Get Users</button>
+
+    <ul id="roleUsers"></ul>
+
+    <script>
+
+        // DATA
+
+        let roles = [
+            { id: "r1", name: "Quản trị viên", description: "Toàn quyền" },
+            { id: "r2", name: "Biên tập viên", description: "Quản lý nội dung" },
+            { id: "r3", name: "Người dùng", description: "User thường" }
+        ]
+
+        let users = [
+            { username: "nguyenvana", fullName: "Nguyễn Văn A", role: "r1" },
+            { username: "tranthib", fullName: "Trần Thị B", role: "r2" },
+            { username: "levanc", fullName: "Lê Văn C", role: "r3" }
+        ]
+
+
+        // RENDER
+
+        function renderRoles() {
+
+            let html = ""
+
+            roles.forEach(r => {
+
+                html += `
+<tr>
+<td>${r.id}</td>
+<td>${r.name}</td>
+<td>${r.description}</td>
+<td>
+<button class="delete" onclick="deleteRole('${r.id}')">Delete</button>
+</td>
+</tr>
+`
+
+            })
+
+            document.getElementById("roleTable").innerHTML = html
+
+            loadRoleOptions()
+
+        }
+
+
+        function renderUsers() {
+
+            let html = ""
+
+            users.forEach(u => {
+
+                let roleName = roles.find(r => r.id === u.role)?.name
+
+                html += `
+<tr>
+<td>${u.username}</td>
+<td>${u.fullName}</td>
+<td>${roleName}</td>
+<td>
+<button class="delete" onclick="deleteUser('${u.username}')">Delete</button>
+</td>
+</tr>
+`
+
+            })
+
+            document.getElementById("userTable").innerHTML = html
+
+        }
+
+
+        // ROLE CRUD
+
+        function createRole() {
+
+            let name = document.getElementById("roleName").value
+            let desc = document.getElementById("roleDesc").value
+
+            let id = "r" + (roles.length + 1)
+
+            roles.push({ id, name, description: desc })
+
+            renderRoles()
+
+        }
+
+
+        function deleteRole(id) {
+
+            roles = roles.filter(r => r.id !== id)
+
+            renderRoles()
+
+        }
+
+
+        // USER CRUD
+
+        function createUser() {
+
+            let username = document.getElementById("username").value
+            let fullName = document.getElementById("fullname").value
+            let role = document.getElementById("userRole").value
+
+            users.push({ username, fullName, role })
+
+            renderUsers()
+
+        }
+
+
+        function deleteUser(username) {
+
+            users = users.filter(u => u.username !== username)
+
+            renderUsers()
+
+        }
+
+
+        // REQUEST /roles/:id/users
+
+        function getUsersByRole() {
+
+            let roleId = document.getElementById("roleFilter").value
+
+            let result = users.filter(u => u.role === roleId)
+
+            let html = ""
+
+            result.forEach(u => {
+                html += `<li>${u.fullName} (${u.username})</li>`
+            })
+
+            document.getElementById("roleUsers").innerHTML = html
+
+        }
+
+
+        // LOAD SELECT
+
+        function loadRoleOptions() {
+
+            let html = ""
+
+            roles.forEach(r => {
+                html += `<option value="${r.id}">${r.name}</option>`
+            })
+
+            document.getElementById("userRole").innerHTML = html
+            document.getElementById("roleFilter").innerHTML = html
+
+        }
+
+
+        // INIT
+
+        renderRoles()
+        renderUsers()
+
+    </script>
+
+</body>
+
+</html>
