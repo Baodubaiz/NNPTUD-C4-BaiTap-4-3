@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Error {{status}}</title>
+</head>
+
+<body>
+    <h1>Error {{status}}</h1>
+    <p>{{message}}</p>
+    {{#if error.stack}}
+    <pre>{{error.stack}}</pre>
+    {{/if}}
+</body>
+
+</html>
